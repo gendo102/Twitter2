@@ -1,17 +1,16 @@
 # twitterexaqmple.py
 # Demonstrates connecting to the twitter API and accessing the twitter stream
 # Author: Michael Fahy
-# ID: 14508
 # Email: fahy@chapman.edu
-# Course: CPSC 353-01
+# Course: CPSC 353
 # Assignment: PA01 Sentiment Analysis
-# Version 1.1
+# Version 1.2
 # Date: February 15, 2016
 
 # Demonstrates connecting to the twitter API and accessing the twitter stream
 
-
 import twitter
+import json
 
 # XXX: Go to http://dev.twitter.com/apps/new to create an app and get values
 # for these credentials, which you'll need to provide in place of these
@@ -25,13 +24,13 @@ CONSUMER_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
 CONSUMER_SECRET = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 OAUTH_TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 OAUTH_TOKEN_SECRET = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-
 auth = twitter.oauth.OAuth(OAUTH_TOKEN, OAUTH_TOKEN_SECRET,
                            CONSUMER_KEY, CONSUMER_SECRET)
 
 twitter_api = twitter.Twitter(auth=auth)
 
-print "Nothing to see by displaying twitter_api except that it's now a defined variable"
+print "Nothing to see by displaying twitter_api"
+print " except that it's now a defined variable"
 print
 print twitter_api
 print
@@ -68,7 +67,6 @@ print 'Example 3. Displaying API responses as pretty-printed JSON '
 print
 raw_input("Press Enter to see Example 3 ")
 print
-import json
 print
 print 'World trends with json.dumps'
 print json.dumps(world_trends, indent=1)
@@ -100,18 +98,18 @@ print
 raw_input("Press Enter to see Example 5 ")
 print
 # Import unquote to prevent url encoding errors in next_results
-from urllib import unquote
+
 
 # XXX: Set this variable to a trending topic,
 # or anything else for that matter. The example query below
 # was a trending topic when this content was being developed
 # and is used throughout the remainder of this chapter.
 
-#q = '#MentionSomeoneImportantForYou'
+# q = '#MentionSomeoneImportantForYou'
 q = raw_input('Enter a search term: ')
 
-#print q
-#raw_input("Press Enter to continue")
+# print q
+# raw_input("Press Enter to continue")
 
 count = 1000
 
@@ -121,19 +119,18 @@ search_results = twitter_api.search.tweets(q=q, count=count)
 
 statuses = search_results['statuses']
 
-
 # Iterate through 5 more batches of results by following the cursor
 
 for _ in range(5):
     print "Length of statuses", len(statuses)
     try:
         next_results = search_results['search_metadata']['next_results']
-    except KeyError, e: # No more results when next_results doesn't exist
+    except KeyError, e:  # No more results when next_results doesn't exist
         break
 
     # Create a dictionary from next_results, which has the following form:
     # ?max_id=313519052523986943&q=NCAA&include_entities=1
-    kwargs = dict([ kv.split('=') for kv in next_results[1:].split("&") ])
+    kwargs = dict([kv.split('=') for kv in next_results[1:].split("&")])
 
     search_results = twitter_api.search.tweets(**kwargs)
     statuses += search_results['statuses']
@@ -149,21 +146,21 @@ print 'Example 6. Extracting text, screen names, and hashtags from tweets'
 print
 raw_input("Press Enter to see Example 6 ")
 print
-status_texts = [ status['text']
-                 for status in statuses ]
+status_texts = [status['text']
+                for status in statuses]
 
-screen_names = [ user_mention['screen_name']
-                 for status in statuses
-                     for user_mention in status['entities']['user_mentions'] ]
+screen_names = [user_mention['screen_name']
+                for status in statuses
+                for user_mention in status['entities']['user_mentions']]
 
-hashtags = [ hashtag['text']
-             for status in statuses
-                 for hashtag in status['entities']['hashtags'] ]
+hashtags = [hashtag['text']
+            for status in statuses
+            for hashtag in status['entities']['hashtags']]
 
 # Compute a collection of all words from all tweets
-words = [ w
-          for t in status_texts
-              for w in t.split() ]
+words = [w
+         for t in status_texts
+         for w in t.split()]
 
 # Explore the first 5 items for each...
 
@@ -172,22 +169,24 @@ print json.dumps(screen_names[0:5], indent=1)
 print json.dumps(hashtags[0:5], indent=1)
 print json.dumps(words[0:5], indent=1)
 
-
-
 print
 raw_input("Press Enter to see Example 7 ")
 print
 print "---------------------------------------------------------------------"
 print 'Example 7. Calculating lexical diversity for tweets'
 
+
 # A function for computing lexical diversity
 def lexical_diversity(tokens):
     return 1.0*len(set(tokens))/len(tokens)
 
+
 # A function for computing the average number of words per tweet
 def average_words(statuses):
-    total_words = sum([ len(s.split()) for s in statuses ])
+    total_words = sum([len(s.split()) for s in statuses])
     return 1.0*total_words/len(statuses)
+
+
 print 'Lexical diversity of words: '
 print lexical_diversity(words)
 print 'Lexical diversity of screen names: '
@@ -220,9 +219,11 @@ print "---------------------------------------------------------------------"
 print 'Example 9. Sentiment Analysis on the search term from Example 5'
 sent_file = open('AFINN-111.txt')
 
-scores = {} # initialize an empty dictionary
+scores = {}  # initialize an empty dictionary
 for line in sent_file:
-    term, score  = line.split("\t")  # The file is tab-delimited. "\t" means "tab character"
+    term, score = line.split("\t")
+    # The file is tab-delimited.
+    # "\t" means "tab character"
     scores[term] = int(score)  # Convert the score to an integer.
 
 score = 0
