@@ -1,4 +1,4 @@
-# twitterexaqmple.py
+
 # Demonstrates connecting to the twitter API and accessing the twitter stream
 # Author: Michael Fahy
 # Email: fahy@chapman.edu
@@ -7,216 +7,82 @@
 # Version 1.2
 # Date: February 15, 2016
 
+# Takes in two search terms from the user
+# Identifies which of the search terms has a higher positive sentiment score
+# Edited by: Kathleen Gendotti
+# Email: gendo102@mail.chapman.edu
+# Date: October 8, 2018
+
+
 # Demonstrates connecting to the twitter API and accessing the twitter stream
 
 import twitter
-import json
 
-# XXX: Go to http://dev.twitter.com/apps/new to create an app and get values
-# for these credentials, which you'll need to provide in place of these
-# empty string values that are defined as placeholders.
-# See https://dev.twitter.com/docs/auth/oauth for more information
-# on Twitter's OAuth implementation.
-
-print 'Example 1'
-print 'Establish Authentication Credentials'
-CONSUMER_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
-CONSUMER_SECRET = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-OAUTH_TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-OAUTH_TOKEN_SECRET = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+print 'Establishing Authentication Credentials'
+CONSUMER_KEY = 'xW4plMsMfGwsZS59Yv1efNBQk'
+CONSUMER_SECRET = '4ci6vkYAvYqhzyIAeRF3Q9NIq4wnGW0krbt0bW0rnn3QDhAFgN'
+OAUTH_TOKEN = '1045483764271308800-zEF2TO4rDfogUWHhd9VruXg5tcJdHI'
+OAUTH_TOKEN_SECRET = 'mIAnfqMPOkX5iLK6ILAHu84BtsUaOwyDR3SlQsuLME3kH'
 auth = twitter.oauth.OAuth(OAUTH_TOKEN, OAUTH_TOKEN_SECRET,
                            CONSUMER_KEY, CONSUMER_SECRET)
 
+# making twitter_api a defined variable
 twitter_api = twitter.Twitter(auth=auth)
 
-print "Nothing to see by displaying twitter_api"
-print " except that it's now a defined variable"
+# prompts user for search terms
 print
-print twitter_api
-print
-raw_input('Press Enter to see Example 2')
-print
+term1 = raw_input('Please enter your first search term: ')
+term2 = raw_input('Please enter your second search term: ')
 
-print "---------------------------------------------------------------------"
-print 'Example 2 - Display world and US trends'
-# The Yahoo! Where On Earth ID for the entire world is 1.
-# See https://dev.twitter.com/docs/api/1.1/get/trends/place and
-# http://developer.yahoo.com/geo/geoplanet/
+print
+print "Calculating sentiment scores..."
 
-WORLD_WOE_ID = 1
-US_WOE_ID = 23424977
-
-# Prefix ID with the underscore for query string parameterization.
-# Without the underscore, the twitter package appends the ID value
-# to the URL itself as a special case keyword argument.
-
-world_trends = twitter_api.trends.place(_id=WORLD_WOE_ID)
-us_trends = twitter_api.trends.place(_id=US_WOE_ID)
-print 'Display World Trends'
-print
-print world_trends
-print
-print 'Display US trends'
-print
-print us_trends
-print
-raw_input("Press Enter to see Example 3 ")
-print
-print "---------------------------------------------------------------------"
-print 'Example 3. Displaying API responses as pretty-printed JSON '
-print
-raw_input("Press Enter to see Example 3 ")
-print
-print
-print 'World trends with json.dumps'
-print json.dumps(world_trends, indent=1)
-print
-print
-raw_input("Press Enter to see US trends ")
-print
-print 'US trends with json.dumps'
-print json.dumps(us_trends, indent=1)
-print
-raw_input("Press Enter to see Example 4 ")
-print
-print "---------------------------------------------------------------------"
-print 'Example 4. Computing the intersection of two sets of trends'
-world_trends_set = set([trend['name']
-                        for trend in world_trends[0]['trends']])
-
-us_trends_set = set([trend['name']
-                     for trend in us_trends[0]['trends']])
-
-common_trends = world_trends_set.intersection(us_trends_set)
-
-print common_trends
-print
-print
-print "---------------------------------------------------------------------"
-print 'Example 5. Collecting search results'
-print
-raw_input("Press Enter to see Example 5 ")
-print
-# Import unquote to prevent url encoding errors in next_results
-
-
-# XXX: Set this variable to a trending topic,
-# or anything else for that matter. The example query below
-# was a trending topic when this content was being developed
-# and is used throughout the remainder of this chapter.
-
-# q = '#MentionSomeoneImportantForYou'
-q = raw_input('Enter a search term: ')
-
-# print q
-# raw_input("Press Enter to continue")
-
+# sets count to 1000 to be used to search twitter stream for the first 1000
+# tweets containing each search term
 count = 1000
 
-# See https://dev.twitter.com/docs/api/1.1/get/search/tweets
+# searches the twitter stream for the first 1000 tweets
+# containing the first search term
+search_results_1 = twitter_api.search.tweets(q=term1, count=count)
+statuses_1 = search_results_1['statuses']
 
-search_results = twitter_api.search.tweets(q=q, count=count)
-
-statuses = search_results['statuses']
+# searches the twitter stream for the first 1000 tweets
+# containing the second search term
+search_results_2 = twitter_api.search.tweets(q=term2, count=count)
+statuses_2 = search_results_2['statuses']
 
 # Iterate through 5 more batches of results by following the cursor
-
 for _ in range(5):
-    print "Length of statuses", len(statuses)
     try:
-        next_results = search_results['search_metadata']['next_results']
+        next_results_1 = search_results_1['search_metadata']['next_results']
+        next_results_2 = search_results_2['search_metadata']['next_results']
     except KeyError, e:  # No more results when next_results doesn't exist
         break
 
     # Create a dictionary from next_results, which has the following form:
     # ?max_id=313519052523986943&q=NCAA&include_entities=1
-    kwargs = dict([kv.split('=') for kv in next_results[1:].split("&")])
+    kwargs_1 = dict([kv.split('=') for kv in next_results_1[1:].split("&")])
+    kwargs_2 = dict([kv.split('=') for kv in next_results_2[1:].split("&")])
 
-    search_results = twitter_api.search.tweets(**kwargs)
-    statuses += search_results['statuses']
+    # gets the first search term results and
+    # adds up the statuses of the results
+    search_results_1 = twitter_api.search.tweets(**kwargs_1)
+    statuses_1 += search_results_1['statuses']
 
-# Show one sample search result by slicing the list...
-print json.dumps(statuses[0], indent=1)
+    # gets the second search term results and
+    # adds up the statuses of the results
+    search_results_2 = twitter_api.search.tweets(**kwargs_2)
+    statuses_2 += search_results_2['statuses']
 
-print
-raw_input("Press Enter to see Example 6 ")
-print
-print "---------------------------------------------------------------------"
-print 'Example 6. Extracting text, screen names, and hashtags from tweets'
-print
-raw_input("Press Enter to see Example 6 ")
-print
-status_texts = [status['text']
-                for status in statuses]
+status_texts_1 = [status['text'] for status in statuses_1]
 
-screen_names = [user_mention['screen_name']
-                for status in statuses
-                for user_mention in status['entities']['user_mentions']]
-
-hashtags = [hashtag['text']
-            for status in statuses
-            for hashtag in status['entities']['hashtags']]
+status_texts_2 = [status['text'] for status in statuses_2]
 
 # Compute a collection of all words from all tweets
-words = [w
-         for t in status_texts
-         for w in t.split()]
+words_1 = [w for t in status_texts_1 for w in t.split()]
 
-# Explore the first 5 items for each...
+words_2 = [w for t in status_texts_2 for w in t.split()]
 
-print json.dumps(status_texts[0:5], indent=1)
-print json.dumps(screen_names[0:5], indent=1)
-print json.dumps(hashtags[0:5], indent=1)
-print json.dumps(words[0:5], indent=1)
-
-print
-raw_input("Press Enter to see Example 7 ")
-print
-print "---------------------------------------------------------------------"
-print 'Example 7. Calculating lexical diversity for tweets'
-
-
-# A function for computing lexical diversity
-def lexical_diversity(tokens):
-    return 1.0*len(set(tokens))/len(tokens)
-
-
-# A function for computing the average number of words per tweet
-def average_words(statuses):
-    total_words = sum([len(s.split()) for s in statuses])
-    return 1.0*total_words/len(statuses)
-
-
-print 'Lexical diversity of words: '
-print lexical_diversity(words)
-print 'Lexical diversity of screen names: '
-print lexical_diversity(screen_names)
-print 'Lexical diversity of hashtags: '
-print lexical_diversity(hashtags)
-print 'Average number of words per tweet: '
-print average_words(status_texts)
-
-print
-raw_input("Press Enter to see Example 8 ")
-print
-print "---------------------------------------------------------------------"
-print 'Example 8. Looking up users who have retweeted a status'
-
-
-# Get the original tweet id for a tweet from its retweeted_status node
-# and insert it here in place of the sample value that is provided
-# from the text of the book
-
-_retweets = twitter_api.statuses.retweets(id=317127304981667841)
-print [r['user']['screen_name'] for r in _retweets]
-
-
-print
-raw_input("Press Enter to see Example 9 ")
-print
-
-print "---------------------------------------------------------------------"
-print 'Example 9. Sentiment Analysis on the search term from Example 5'
 sent_file = open('AFINN-111.txt')
 
 scores = {}  # initialize an empty dictionary
@@ -226,9 +92,39 @@ for line in sent_file:
     # "\t" means "tab character"
     scores[term] = int(score)  # Convert the score to an integer.
 
-score = 0
-for word in words:
+# initializes the search terms scores
+term1_score = 0
+term2_score = 0
+
+# iterates through the words for the first search term to
+# calculate the sentiment score
+for word in words_1:
     uword = word.encode('utf-8')
     if uword in scores.keys():
-        score = score + scores[word]
-print float(score)
+        term1_score = term1_score + scores[word]
+
+# iterates through the words for the second search term to
+# calculate the sentiment score
+for word in words_2:
+    uword = word.encode('utf-8')
+    if uword in scores.keys():
+        term2_score = term2_score + scores[word]
+
+# Prints the sentiment scores of each term to the user
+print
+print 'Sentiment score for ' + term1 + ': ' + str(float(term1_score))
+print 'Sentiment score for ' + term2 + ': ' + str(float(term2_score))
+print
+
+# Statments used to identify
+# which search term has a higher positive sentiment score
+
+# If the first search term's sentiment score is large, it tells the user
+if(float(term1_score) > float(term2_score)):
+    print term1 + ' has a more postive sentiment score than ' + term2
+# If the second search term's sentiment score is large, it tells the user
+elif(float(term1_score) < float(term2_score)):
+    print term2 + ' has a more postive sentiment score than ' + term1
+# If the search terms sentiment scores are equal, it tells the user
+else:
+    print term1 + ' and ' + term2 + ' have an equal sentiment scores'
